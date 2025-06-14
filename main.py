@@ -1,7 +1,8 @@
 import streamlit as st
 import openai
 import tempfile
-from key import OPENAI_API_KEY
+import os
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
 
 # Streamlitアプリタイトル
 st.title("Text-to-Speech with GPT-4o Mini TTS")
