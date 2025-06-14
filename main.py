@@ -35,6 +35,16 @@ voice = st.sidebar.selectbox(
     help="使用する音声を選択"
 )
 
+# スピード調整（0.25倍から4倍まで）
+speed = st.sidebar.slider(
+    "Speed",
+    min_value=0.25,
+    max_value=4.0,
+    value=1.0,
+    step=0.25,
+    help="音声の再生速度を調整（0.25x - 4.0x）"
+)
+
 # --- メイン入力 ---
 text_input = st.text_area(
     "Enter text to convert to speech:",
@@ -43,7 +53,7 @@ text_input = st.text_area(
 
 if st.button("Generate Speech"):
     # APIキー未入力チェック
-    if not openai.api_key:
+    if not api_key:
         st.error("OpenAI APIキーが設定されていません。サイドバーに入力してください。")
     elif not text_input.strip():
         st.error("変換するテキストを入力してください。")
@@ -52,11 +62,12 @@ if st.button("Generate Speech"):
             try:
                 # 一時ファイル作成
                 tmpfile = tempfile.NamedTemporaryFile(delete=False, suffix=".mp3")
-                # 音声生成リクエスト
+                # 音声生成リクエスト（スピードパラメータを追加）
                 with openai.audio.speech.with_streaming_response.create(
                     model=model,
                     voice=voice,
-                    input=text_input
+                    input=text_input,
+                    speed=speed  # スピード調整パラメータを追加
                 ) as response:
                     response.stream_to_file(tmpfile.name)
 
@@ -64,5 +75,8 @@ if st.button("Generate Speech"):
                 audio_bytes = open(tmpfile.name, "rb").read()
                 st.success("Audio generation complete!")
                 st.audio(audio_bytes, format="audio/mp3")
+                
+                # スピード情報を表示
+                st.info(f"Generated with speed: {speed}x")
             except Exception as e:
                 st.error(f"An error occurred: {e}")
